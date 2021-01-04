@@ -1,5 +1,6 @@
+
+
 const AWS = require('aws-sdk');
-const fs = require('fs');
 const csv = require('@fast-csv/parse');
 AWS.config.update({
     accessKeyId: '{AWS_KEY}',
@@ -7,7 +8,7 @@ AWS.config.update({
     region: '{SNS_REGION}'
 });
 const s3 = new AWS.S3();
-const docClient = new AWS.DynamoDB(region).DocumentClient();
+const docClient = new AWS.DynamoDB.DocumentClient();
 const table = "CSVDATA";
 
 const sns = new AWS.SNS();
@@ -56,12 +57,11 @@ Sample lambda event json
 exports.handler = async (event, context, callback) => {
 
     // Read options from the event parameter.
-    //console.log("Reading options from event:\n", util.inspect(event, {depth: 5}));
-
     const srcBucket = event.Records[0].s3.bucket.name;
     // Object key may have spaces or unicode non-ASCII characters.
     const srcKey    = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));
 
+    // 获取S3对象
     try {
         const params = {
             Bucket: srcBucket,
@@ -77,9 +77,11 @@ exports.handler = async (event, context, callback) => {
         return;
     }
 
+    // 解析CSV文件
     csv.parseStream(csvFileStream)
         .on('error', (error) => {
             console.error(error);
+            sns.publish({TopicArn: topicARN, Message:`parseCSV error:${JSON.stringify(error, null, 2)}`});
         })
         .on('data', (row) => {
             console.log(`ROW=${JSON.stringify(row)}`)
@@ -89,6 +91,7 @@ exports.handler = async (event, context, callback) => {
                 Item:row
             };
 
+            // 按行方式插入DynamoDB，可以考虑批量插入
             docClient.put(params, function(err, data) {
                 if (err) {
                     console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
