@@ -69,6 +69,8 @@ $ aws apigateway create-resource --rest-api-id $API  --path-part parsecsv \
 }
 ```
 
+AWS 部署流程
+-----
 Tutorial: Create a REST API as an Amazon S3 proxy in API Gateway
 https://docs.aws.amazon.com/apigateway/latest/developerguide/integrating-api-with-aws-services-s3.html
 
