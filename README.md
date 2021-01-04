@@ -24,6 +24,54 @@ npm i -S fast-csv
 npm i -S @fast-csv/parse
 ```
 
+部署方式
+-----
+```
+$ zip function.zip index.js
+
+$ aws lambda create-function --function-name LambdaParseCSV \
+--zip-file fileb://function.zip --handler index.handler --runtime nodejs12.x \
+--role arn:aws:iam::123456789012:role/service-role/lambda-apigateway-role
+
+```
+```
+$ aws apigateway create-rest-api --name ParseCSVAPI
+{
+    "id": "bs8fqo6bp0",
+    "name": "DynamoDBOperations",
+    "createdDate": 1539803980,
+    "apiKeySource": "HEADER",
+    "endpointConfiguration": {
+        "types": [
+            "EDGE"
+        ]
+    }
+}
+```
+```
+$ API=bs8fqo6bp0
+$ aws apigateway get-resources --rest-api-id $API
+{
+    "items": [
+        {
+            "path": "/",
+            "id": "e8kitthgdb"
+        }
+    ]
+}
+$ aws apigateway create-resource --rest-api-id $API  --path-part parsecsv \
+--parent-id e8kitthgdb
+{
+    "path": "/parsecsv",
+    "pathPart": "parsecsv",
+    "id": "iuig5w",
+    "parentId": "e8kitthgdb"
+}
+```
+
+Tutorial: Create a REST API as an Amazon S3 proxy in API Gateway
+https://docs.aws.amazon.com/apigateway/latest/developerguide/integrating-api-with-aws-services-s3.html
+
 CSV Sample
 -----
 ```
